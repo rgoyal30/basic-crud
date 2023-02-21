@@ -1,4 +1,5 @@
 const _ = require("lodash");
+var validator = require("email-validator");
 // const { check, validationResult } = require("express-validator");
 
 const users = [];
@@ -12,7 +13,6 @@ const getAllUsers = (req, res) => {
   }
 };
 
-
 //Post request
 const createUser = (req, res) => {
   if (users.length > 0) {
@@ -21,13 +21,20 @@ const createUser = (req, res) => {
     if (user) {
       res.status(400).json({ message: "User already created", data: user });
     } else {
-      const id = users.length;
-      let newUser = { id, ...req.body };
+      const {email} = req.body;
+      let isValid = validator.validate(email);
 
-      users.push(newUser);
-      res
-        .status(200)
-        .json({ message: "User created successfully", data: newUser });
+      if (isValid) {
+        const id = users.length;
+        let newUser = { id, ...req.body };
+
+        users.push(newUser);
+        res
+          .status(200)
+          .json({ message: "User created successfully", data: newUser });
+      } else {
+        res.status(400).json({ message: "Invalid email" });
+      }
     }
   } else {
     const id = users.length;
@@ -66,11 +73,11 @@ const updateUserById = (req, res) => {
   if (index >= 0) {
     const { email, password } = req.body;
 
-    if(email) {
-        users[index].email = email;
+    if (email) {
+      users[index].email = email;
     }
-    if(password) {
-        users[index].password = password;
+    if (password) {
+      users[index].password = password;
     }
 
     res
@@ -89,9 +96,7 @@ const deleteUser = (req, res) => {
   if (index >= 0) {
     users.splice(index, 1);
 
-    res
-      .status(200)
-      .json({ message: "User deleted successfully", data: users });
+    res.status(200).json({ message: "User deleted successfully", data: users });
   } else {
     res.status(400).json({ message: "Incorrect Userid" });
   }
